@@ -1,36 +1,59 @@
+import formJSON from './formElement.json';
+
+import { useState, useEffect } from 'react';
+import Element from './components/Element';
+import { FormContext } from './FormContext';
 import './App.css';
 
 function App() {
+
+  const [elements, setElements] = useState(null);
+
+  useEffect(() => {
+    setElements(formJSON[0])
+  }, [])
+
+  const { fields, page_label } = elements ?? {}
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    console.log(JSON.stringify(elements))
+  }
+
+  const handleChange = (id, event) => {
+    const newElements = { ...elements }
+    newElements.fields.forEach(field => {
+      const { field_type, field_id } = field;
+      if (id === field_id) {
+        switch (field_type) {
+          case 'checkbox':
+            field['field_value'] = event.target.checked;
+            break;
+
+          default:
+            field['field_value'] = event.target.value;
+            break;
+        }
+
+
+      }
+      setElements(newElements)
+    });
+
+  }
+
   return (
-    <div classname="App container">
-      <h1>React Dynamic Form</h1>
-      <form>
-        <div className="mb-3">
-          <label htmlFor="exampleInputEmail1" className="form-label">Email address</label>
-          <input type="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" />
-          <div id="emailHelp" className="form-text">We'll never share your email with anyone else.</div>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="exampleInputPassword1" className="form-label">Password</label>
-          <input type="password" className="form-control" id="exampleInputPassword1" />
-        </div>
-        <div className="mb-3 form-check">
-          <input type="checkbox" className="form-check-input" id="exampleCheck1" />
-          <label className="form-check-label" htmlFor="exampleCheck1">Check me out</label>
-        </div>
-        <select className="form-select" aria-label="Default select example">
-          <option selected>Open this select menu</option>
-          <option value={1}>One</option>
-          <option value={2}>Two</option>
-          <option value={3}>Three</option>
-        </select>
+    <FormContext.Provider value={{ handleChange }}>
+      <div className="App container">
+        <h3>{page_label}</h3>
+        <form>
+          {fields ? fields.map((field, i) => <Element key={i} field={field} />) : null}
+          <button type="submit" className="btn btn-primary" onClick={(e) => handleSubmit(e)}>Submit</button>
+        </form>
 
-
-
-        <button type="submit" className="btn btn-primary">Submit</button>
-      </form>
-    </div>
-
+      </div>
+    </FormContext.Provider>
   );
 }
 
